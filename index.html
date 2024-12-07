@@ -4,60 +4,25 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Responsive InDesign Export with Navigation</title>
+  <link rel="stylesheet" href="main.css">
   <style>
-    /* Fullscreen styling for body */
-    html, body {
-      margin: 0;
-      padding: 0;
-      width: 100%;
-      height: 100%;
-      background-color: black; /* Letterboxing bars */
-      overflow: hidden; /* Prevent scrolling */
-      display: flex;
-      justify-content: center;
-      align-items: center;
-    }
-
-    /* Fullscreen iframe */
-    iframe {
-      border: none;
-      position: absolute;
-      transform-origin: top left; /* Scale from the top-left corner */
+    /* Hide body until fully loaded */
+    body.hidden {
+      visibility: hidden;
     }
 
     /* Navigation arrows */
     .nav-arrow {
-      position: absolute;
-      top: 50%; /* Center vertically */
-      transform: translateY(-50%);
-      font-size: 50px;
-      font-weight: bold;
-      color: white;
-      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-      padding: 15px;
-      border-radius: 5px;
-      cursor: pointer;
-      z-index: 1000;
-      user-select: none;
-    }
-
-    .nav-arrow:hover {
-      background-color: rgba(255, 255, 255, 0.7); /* Lighter on hover */
-      color: black;
-    }
-
-    .prev {
-      left: 20px; /* Position to the left of the screen */
-    }
-
-    .next {
-      right: 20px; /* Position to the right of the screen */
+      font-size: calc(5vw + 10px); /* Scale font size dynamically */
+      min-width: 20px; /* Minimum size for small viewports */
+      min-height: 20px;
+      padding: calc(1vw + 5px); /* Scale padding dynamically */
     }
   </style>
 </head>
-<body>
+<body class="hidden">
   <!-- Responsive iframe -->
-  <iframe id="contentIFrame" src="publication-web-resources/html/publication.html"></iframe>
+  <iframe id="contentIFrame" class="contentIframeClass"></iframe>
 
   <!-- Navigation Arrows -->
   <div class="nav-arrow prev" onclick="showPreviousPage()">&#10094;</div>
@@ -68,6 +33,28 @@
     let currentPage = 0; // Start with publication.html
     const totalPages = 30; // Total number of publication pages (0 to 29)
 
+    // Preload adjacent pages
+    function preloadAdjacentPages() {
+      const prev = currentPage > 0 ? currentPage - 1 : null;
+      const next = currentPage < totalPages - 1 ? currentPage + 1 : null;
+
+      if (prev !== null) {
+        const linkPrev = document.createElement("link");
+        linkPrev.rel = "prefetch";
+        linkPrev.href = prev === 0
+          ? "publication-web-resources/html/publication.html"
+          : `publication-web-resources/html/publication-${prev}.html`;
+        document.head.appendChild(linkPrev);
+      }
+
+      if (next !== null) {
+        const linkNext = document.createElement("link");
+        linkNext.rel = "prefetch";
+        linkNext.href = `publication-web-resources/html/publication-${next}.html`;
+        document.head.appendChild(linkNext);
+      }
+    }
+
     // Update iframe source to load the correct page
     function updateIframeSource() {
       const iframe = document.getElementById("contentIFrame");
@@ -77,6 +64,8 @@
       } else {
         iframe.src = `publication-web-resources/html/publication-${currentPage}.html`;
       }
+
+      preloadAdjacentPages(); // Preload neighboring pages
     }
 
     // Navigate to the previous page
@@ -99,6 +88,7 @@
       }
     }
 
+    // Resize iframe to fit the viewport
     function resizeIframe() {
       const iframe = document.getElementById("contentIFrame");
       const viewportWidth = window.innerWidth;
@@ -128,8 +118,9 @@
       iframe.style.top = `${(viewportHeight - contentHeight * scale) / 2}px`;
     }
 
-    // Resize the iframe on load and window resize
+    // Show content only after everything is loaded
     window.onload = () => {
+      document.body.classList.remove("hidden");
       resizeIframe();
       updateIframeSource(); // Ensure the correct page is loaded initially
     };
