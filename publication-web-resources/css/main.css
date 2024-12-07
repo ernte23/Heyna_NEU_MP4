@@ -1,46 +1,32 @@
-/* Fullscreen styling for iframe */
 .contentIframeClass {
-  position: absolute;
-  border: none;
-  width: 100%;
-  height: 100%;
+	width: 100%;
+	height: 100%;
+	position: absolute;
+	border: none;
 }
 
-/* Global styles for smooth appearance */
 html, body {
-  margin: 0;
-  overflow: hidden;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: black; /* Letterboxing bars */
-  width: 100%;
-  height: 100%;
+	margin: 0;
+	overflow: hidden;
 }
 
-/* Navigation arrows */
-.nav-arrow {
-  position: absolute;
-  top: 50%; /* Center vertically */
-  transform: translateY(-50%);
-  color: white;
-  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
-  border-radius: 5px;
-  cursor: pointer;
-  z-index: 1000;
-  user-select: none;
-  font-weight: bold;
-}
-
-.nav-arrow:hover {
-  background-color: rgba(255, 255, 255, 0.7); /* Lighter on hover */
-  color: black;
-}
-
-.prev {
-  left: 20px; /* Position to the left of the screen */
+.prev, .next {
+	cursor: pointer;
+	position: absolute;
+	top: 50%;
+	padding: 15px;
+	color: rgb(0, 0, 0);
+	font-weight: bold;
+	font-size: 30px;
+	visibility: visible;
 }
 
 .next {
-  right: 20px; /* Position to the right of the screen */
+	right: 0;
+	border-radius: 3px 0 0 3px;
+}
+
+.prev {
+	left: 0;
+	border-radius: 0 3px 3px 0;
 }
