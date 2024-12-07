@@ -4,9 +4,57 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Responsive InDesign Export with Navigation</title>
-  <link rel="stylesheet" href="main.css">
   <style>
-    /* Smooth loading: Hide body until fully loaded */
+    /* Fullscreen styling for body */
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      background-color: black; /* Letterboxing bars */
+      overflow: hidden; /* Prevent scrolling */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    /* Fullscreen iframe */
+    iframe {
+      border: none;
+      position: absolute;
+      transform-origin: top left; /* Scale from the top-left corner */
+    }
+
+    /* Navigation arrows */
+    .nav-arrow {
+      position: absolute;
+      top: 50%; /* Center vertically */
+      transform: translateY(-50%);
+      font-size: 50px;
+      font-weight: bold;
+      color: white;
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent background */
+      padding: 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      z-index: 1000;
+      user-select: none;
+    }
+
+    .nav-arrow:hover {
+      background-color: rgba(255, 255, 255, 0.7); /* Lighter on hover */
+      color: black;
+    }
+
+    .prev {
+      left: 20px; /* Position to the left of the screen */
+    }
+
+    .next {
+      right: 20px; /* Position to the right of the screen */
+    }
+
+    /* Hide body until fully loaded */
     body.hidden {
       visibility: hidden;
     }
@@ -14,7 +62,7 @@
 </head>
 <body class="hidden">
   <!-- Responsive iframe -->
-  <iframe id="contentIFrame" class="contentIframeClass"></iframe>
+  <iframe id="contentIFrame" src="publication-web-resources/html/publication.html"></iframe>
 
   <!-- Navigation Arrows -->
   <div class="nav-arrow prev" onclick="showPreviousPage()">&#10094;</div>
@@ -27,23 +75,30 @@
 
     // Preload adjacent pages
     function preloadAdjacentPages() {
-      const prev = currentPage > 0 ? currentPage - 1 : null;
-      const next = currentPage < totalPages - 1 ? currentPage + 1 : null;
+      const head = document.head;
+      const prevPage =
+        currentPage > 0
+          ? currentPage === 1
+            ? "publication-web-resources/html/publication.html"
+            : `publication-web-resources/html/publication-${currentPage - 1}.html`
+          : null;
+      const nextPage =
+        currentPage < totalPages - 1
+          ? `publication-web-resources/html/publication-${currentPage + 1}.html`
+          : null;
 
-      if (prev !== null) {
+      if (prevPage) {
         const linkPrev = document.createElement("link");
         linkPrev.rel = "prefetch";
-        linkPrev.href = prev === 0
-          ? "publication-web-resources/html/publication.html"
-          : `publication-web-resources/html/publication-${prev}.html`;
-        document.head.appendChild(linkPrev);
+        linkPrev.href = prevPage;
+        head.appendChild(linkPrev);
       }
 
-      if (next !== null) {
+      if (nextPage) {
         const linkNext = document.createElement("link");
         linkNext.rel = "prefetch";
-        linkNext.href = `publication-web-resources/html/publication-${next}.html`;
-        document.head.appendChild(linkNext);
+        linkNext.href = nextPage;
+        head.appendChild(linkNext);
       }
     }
 
@@ -80,11 +135,42 @@
       }
     }
 
+    function resizeIframe() {
+      const iframe = document.getElementById("contentIFrame");
+      const viewportWidth = window.innerWidth;
+      const viewportHeight = window.innerHeight;
+
+      // Original dimensions of InDesign export
+      const contentWidth = 1920;
+      const contentHeight = 1080;
+
+      // Calculate aspect ratio scaling
+      let scale;
+      if (viewportWidth / viewportHeight > contentWidth / contentHeight) {
+        // Wider viewport: scale based on height
+        scale = viewportHeight / contentHeight;
+      } else {
+        // Taller viewport: scale based on width
+        scale = viewportWidth / contentWidth;
+      }
+
+      // Apply scaling and size adjustments
+      iframe.style.width = `${contentWidth}px`;
+      iframe.style.height = `${contentHeight}px`;
+      iframe.style.transform = `scale(${scale})`;
+
+      // Center the iframe within the viewport
+      iframe.style.left = `${(viewportWidth - contentWidth * scale) / 2}px`;
+      iframe.style.top = `${(viewportHeight - contentHeight * scale) / 2}px`;
+    }
+
     // Show content only after everything is loaded
     window.onload = () => {
-      document.body.classList.remove("hidden"); // Remove hidden class after load
+      document.body.classList.remove("hidden");
+      resizeIframe();
       updateIframeSource(); // Ensure the correct page is loaded initially
     };
+    window.onresize = resizeIframe;
   </script>
 </body>
 </html>
