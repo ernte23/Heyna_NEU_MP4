@@ -18,6 +18,11 @@
       align-items: center;
     }
 
+    /* Hide content until fully loaded */
+    body.hidden {
+      visibility: hidden;
+    }
+
     /* Fullscreen iframe */
     iframe {
       border: none;
@@ -53,69 +58,58 @@
     .next {
       right: 20px; /* Position to the right of the screen */
     }
-
-    /* Hide body until fully loaded */
-    body.hidden {
-      visibility: hidden;
-    }
   </style>
 </head>
 <body class="hidden">
   <!-- Responsive iframe -->
-  <iframe id="contentIFrame" src="publication-web-resources/html/publication.html"></iframe>
+  <iframe id="contentIFrame"></iframe>
 
   <!-- Navigation Arrows -->
   <div class="nav-arrow prev" onclick="showPreviousPage()">&#10094;</div>
   <div class="nav-arrow next" onclick="showNextPage()">&#10095;</div>
 
   <script>
-    // Variables to track current page
-    let currentPage = 0; // Start with publication.html
-    const totalPages = 30; // Total number of publication pages (0 to 29)
+    let currentPage = 0; // Start with the first page
+    const totalPages = 30; // Total number of pages
 
-    // Preload adjacent pages
-    function preloadAdjacentPages() {
-      const head = document.head;
-      const prevPage =
-        currentPage > 0
-          ? currentPage === 1
-            ? "publication-web-resources/html/publication.html"
-            : `publication-web-resources/html/publication-${currentPage - 1}.html`
-          : null;
-      const nextPage =
-        currentPage < totalPages - 1
-          ? `publication-web-resources/html/publication-${currentPage + 1}.html`
-          : null;
-
-      if (prevPage) {
-        const linkPrev = document.createElement("link");
-        linkPrev.rel = "prefetch";
-        linkPrev.href = prevPage;
-        head.appendChild(linkPrev);
-      }
-
-      if (nextPage) {
-        const linkNext = document.createElement("link");
-        linkNext.rel = "prefetch";
-        linkNext.href = nextPage;
-        head.appendChild(linkNext);
-      }
+    function preloadPage(url) {
+      const link = document.createElement("link");
+      link.rel = "prefetch";
+      link.href = url;
+      document.head.appendChild(link);
     }
 
-    // Update iframe source to load the correct page
     function updateIframeSource() {
       const iframe = document.getElementById("contentIFrame");
+      iframe.style.visibility = "hidden"; // Hide the iframe until loaded
 
-      if (currentPage === 0) {
-        iframe.src = "publication-web-resources/html/publication.html";
-      } else {
-        iframe.src = `publication-web-resources/html/publication-${currentPage}.html`;
+      // Determine current page URL
+      const currentPageUrl =
+        currentPage === 0
+          ? "publication-web-resources/html/publication.html"
+          : `publication-web-resources/html/publication-${currentPage}.html`;
+
+      iframe.src = currentPageUrl;
+
+      // Prefetch next and previous pages
+      if (currentPage > 0) {
+        const prevPageUrl =
+          currentPage === 1
+            ? "publication-web-resources/html/publication.html"
+            : `publication-web-resources/html/publication-${currentPage - 1}.html`;
+        preloadPage(prevPageUrl);
+      }
+      if (currentPage < totalPages - 1) {
+        const nextPageUrl = `publication-web-resources/html/publication-${currentPage + 1}.html`;
+        preloadPage(nextPageUrl);
       }
 
-      preloadAdjacentPages(); // Preload neighboring pages
+      // Show iframe only when fully loaded
+      iframe.onload = () => {
+        iframe.style.visibility = "visible";
+      };
     }
 
-    // Navigate to the previous page
     function showPreviousPage() {
       if (currentPage > 0) {
         currentPage--;
@@ -125,7 +119,6 @@
       }
     }
 
-    // Navigate to the next page
     function showNextPage() {
       if (currentPage < totalPages - 1) {
         currentPage++;
@@ -164,11 +157,11 @@
       iframe.style.top = `${(viewportHeight - contentHeight * scale) / 2}px`;
     }
 
-    // Show content only after everything is loaded
+    // Initialize
     window.onload = () => {
       document.body.classList.remove("hidden");
       resizeIframe();
-      updateIframeSource(); // Ensure the correct page is loaded initially
+      updateIframeSource();
     };
     window.onresize = resizeIframe;
   </script>
